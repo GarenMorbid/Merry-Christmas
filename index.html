@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta id="viewport" name="viewport" content="width=640, initial-scale=0.5, maximum-scale=2.0, minimum-scale=0.5, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="MobileOptimized" content="640">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" type="text/css" href="images/main.css">
+    <link rel="SHORTCUT ICON" href="images/h7.ico" />
+    <title>圣诞贺卡</title>
+    <style>
+        /*背景音乐按钮的样式*/
+        
+        .btn_music {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: url('http://apisimsim.duapp.com/index/images/play.png') no-repeat center center;
+            background-size: 100% auto;
+            position: absolute;
+            z-index: 100;
+            left: 15px;
+            top: 30px;
+        }
+        /*背景音乐按钮样式开启状态*/
+        
+        .btn_music.on {
+            background-image: url("http://apisimsim.duapp.com/index/images/stop.png");
+        }
+        
+        @keyframes starMplification {
+            0% {
+                -webkit-transform: scale(0.1);
+            }
+            50% {
+                -webkit-transform: scale(0.2);
+            }
+            100% {
+                -webkit-transform: scale(0.1);
+            }
+        }
+        
+        .star {
+            animation: starMplification 1.2s linear infinite;
+        }
+    </style>
+    <script src="js/viewport.js"></script>
+    <script src="js/jquery-1.9.1-min.js"></script>
+    <script src="js/warterfall.js"></script>
+
+    <script>
+        //驯鹿对象的声明
+        var deerSpite;
+        //声明拖车对象
+        var newyearCat1Sprite;
+        //打开礼物按钮对象
+        var openGiftSprite;
+        //定义鲜花的对象
+        var flowerSprite;
+
+        //定义animation1动画的函数
+        function animation1() {
+            //图片动画执行的一个时间是15s钟
+            var duration1 = 15000;
+            //驯鹿往前走的一个执行时间
+            var duration2 = 15000;
+            $(".bg").animate({
+                "left": "0px"
+            }, duration1, function() {});
+
+            //创建驯鹿的对象
+            deerSpite = new createDeerSprite();
+            //创建拖车对象
+            newyearCat1Sprite = new createCarSprite(1, {
+                isVibrate: true
+            });
+            //创建拆开礼物按钮对象
+            openGiftSprite = new createOpenGiftSprite();
+
+            //驯鹿往前走
+            $(".deer_group").animate({
+                "left": "-640px"
+            }, duration2, function() {
+                //希望驯鹿往前走能停下来
+                //清除定时器
+                clearInterval(deerSpite.timeID1);
+            });
+
+            $(".pop1").fadeIn(100); //第一个开场白淡入的动效，动效时间是100ms
+            //设置一个定时器，3s后执行定时器里的这个函数
+            setTimeout(function() {
+                $(".pop1").fadeOut(1000); //第一个开场白淡出
+                $(".pop2").fadeIn(1000); //第二个开场白淡入
+            }, 3000);
+        }
+
+        //定义animation2的动画
+        function animation2() {
+            //创建flower对象，就会实现它的动画效果
+            flowerSprite = new createFlowerSprite(10);
+            titleSprite = new createTitleSprite(2, {
+                isVibrate: true
+            });
+            setTimeout(function() {
+                clearInterval(titleSprite.timeID1);
+            }, 3000); //定时器，只做一次执行动作
+        }
+
+        //祝福语的动效
+        function createTitleSprite(id, option) {
+            //找到title的标签对象
+            this.el = $("#title" + id);
+            //动画实现的时间
+            this.duration1 = 5000;
+            if (option.isVibrate) { //即将执行动画操作
+                this.el.css("opacity", 1);
+                this.el.animate({
+                    "top": "30px"
+                }, 3000, function() {});
+                this.carRotate = 0; //标题胡旋转值，默认值
+                this.perCarRotate = 0.1; //标题的变化值，左右摇摆胡角度
+                this.carMinRotate = -1; //标题旋转的最小值
+                this.carMaxRotate = 1; //标题旋转的最大值
+                var titleSprite = this; //把当前对象赋值给titleSprite
+                this.timeID1 = setInterval(function() {
+                    //当祝福语的旋转值在最大和最小旋转值之间，则产生一个角度的变化
+                    if (titleSprite.carMinRotate < titleSprite.carRotate && titleSprite.carRotate < titleSprite.carMaxRotate) {
+                        titleSprite.carRotate += titleSprite.perCarRotate;
+                    } else if (titleSprite.carRotate > titleSprite.carMaxRotate) {
+                        titleSprite.perCarRotate = -0.1; //当祝福语旋转角度大于最大的角度则就要反向的旋转
+                        titleSprite.carRotate += titleSprite.perCarRotate; //不断减少旋转的角度
+                    } else if (titleSprite.carRotate < titleSprite.carMinRotate) {
+                        titleSprite.perCarRotate = 0.1; //当祝福语旋转角度小于最小的角度则就要正向的旋转
+                        titleSprite.carRotate += titleSprite.perCarRotate;
+
+                    }
+                    //利用js来操作css样式
+                    titleSprite.el.css("-webkit-transform", "rotate(" + titleSprite.carRotate + "deg)");
+                }, this.duration2); //js中定时器
+            }
+        }
+
+        // 定义鲜花的动效
+        function createFlowerSprite(number) {
+            //不是一朵鲜花的动效，而是多个鲜花的动效
+            //则大家一定要使用数组来存储鲜花对象
+            this.flowerResArray = new Array(); //用于存放鲜花图片的数组
+            this.flowerResArray[0] = ['flower_1.png', 'flower_4.png', 'flower_6.png', 'flower_7.png', 'flower_8.png', 'flower_10.png', 'flower_11.png', 'flower_12.png', 'flower_14.png'];
+            this.flowerResArray[1] = ['flower_2.png', 'flower_3.png', 'flower_4.png', 'flower_5.png', 'flower_7.png', 'flower_8.png', 'flower_9.png', 'flower_10.png', 'flower_12.png', 'flower_13.png'];
+            this.flowerCounts = number; //鲜花的个数
+
+            this.flowerArr = new Array(); //存放鲜花的img节点对象
+            this.middlePosition = 230; //中间位置的设置
+            this.topWidth = 350;
+            this.leftWidth = this.middlePosition;
+            this.createFlowerAnimation = function() {
+                //JS的DOM操作基本技术
+                //真正的去创建鲜花(暗指：img标签)
+                for (var i = 0; i < this.flowerCounts; i++) {
+                    this.flowerArr[i] = document.createElement("img");
+                    this.flowerArr[i].style.position = "absolute";
+
+                    if (i % 2 == 0) {
+                        //设置左边鲜花的按位置
+                        this.leftWidth = this.middlePosition - i * 6;
+                    } else {
+                        //设置右边鲜花的位置
+                        this.leftWidth = this.middlePosition + i * 6;
+                    }
+
+                    if (this.left <= this.middlePosition) {
+                        this.flowerArr[i].src = "images/" + this.flowerResArray[0][(parseInt(Math.random() * 9) % 9)];
+                    } else {
+                        this.flowerArr[i].src = "images/" + this.flowerResArray[1][(parseInt(Math.random() * 10) % 10)];
+                    }
+
+                    this.flowerArr[i].style.top = this.topWidth + "px";
+                    this.flowerArr[i].style.left = this.leftWidth + "px";
+
+                    //将鲜花img标签放到animation2 div里
+                    $(".animation2 .flower").append(this.flowerArr[i]);
+
+                    //给每一朵鲜花做动效
+                    $(this.flowerArr[i]).animate({
+                        "top": "-300px",
+                        "left": this.leftWidth <= this.middlePosition ? this.leftWidth - 80 - (i * 65) + 'px' : this.leftWidth + 80 + (i * 65) + 'px'
+                    }, 2000, function() {
+                        //动画执行结束后删除每一朵鲜花动画
+                        $(this).remove();
+                    });
+                }
+            }
+
+            flowerSprite = this;
+            //定时完成不断实现鲜花的重复动效
+            this.timeID1 = setInterval(function() {
+                flowerSprite.createFlowerAnimation();
+            }, 1000);
+        }
+
+        //定义一个驯鹿的属性和特效
+        function createDeerSprite() {
+            this.duration1 = 100; //动画的切换时间，驯鹿的四条腿要动起来，要切换
+            this.el = $(".deer"); //获取驯鹿的div
+            this.timeID1 = setInterval(function() {
+                //拿到驯鹿的对象，然后利用改变当前div的样式就能让驯鹿跑起来
+                //toggleClass来回不断的变换div的样式
+                deerSpite.el.toggleClass("deer_frame2");
+            }, this.duration1); //JS的定时器，定时器：重复执行一个动作的函数
+        }
+
+        //创建拆开礼物按钮对象
+        function createOpenGiftSprite() {
+            this.el = $(".opengift"); //获得我们拆开礼物的标签
+            this.el.show(); //按钮对象从隐藏的状态变为显示的状态
+        }
+
+        //定义一个拖车的动效
+        function createCarSprite(id, option) {
+            this.duration1 = 100; //动效的执行时间
+            this.el = $("#newyearcar" + id) //获取拖车的div
+            if (option.isVibrate) {
+                //如果这个参数为true则执行拖车的动效
+                this.carRotate = 0; //拖车的一个旋转值，默认为0
+                this.perCarRotate = 0.1; //拖车的变化值，左右摇摆的角度
+                this.carMinRotate = -1; //拖车旋转的最小值
+                this.carMaxRotate = 1; //拖车旋转的最大值
+                var carSprite = this; //把我当前对象赋值给变量carSprite
+                this.timeID1 = setInterval(function() {
+                    //当一个拖车值在最大和最小旋转值之间，则产生一个角度的变化
+                    if (carSprite.carMinRotate < carSprite.carRotate && carSprite.carRotate < carSprite.carMaxRotate) {
+                        carSprite.carRotate += carSprite.perCarRotate;
+                    } else if (carSprite.carRotate > carSprite.carMaxRotate) {
+                        //当拖车的旋转角度达到一个最大角度，就把增量变为负值，实现反向旋转
+                        carSprite.perCarRotate = -0.1;
+                        carSprite.carRotate += carSprite.perCarRotate;
+                    } else if (carSprite.carRotate < carSprite.carMinRotate) {
+                        //当拖车的旋转角度达到一个最小角度，就把增量变为正值，实现正向旋转
+                        carSprite.perCarRotate = 0.1;
+                        carSprite.carRotate += carSprite.perCarRotate;
+                    }
+
+                    //利用JS来操作CSS样式
+                    carSprite.el.css("-webkit-transform", "rotate(" + carSprite.carRotate + "deg)");
+                }, this.duration1);
+            }
+        }
+
+        //jQuery的函数定义
+        //利用jQuery去完成开始的事件触发，然后再去执行图片动画的切换
+        $(function() {
+            //背景音乐的播放和停止
+            //单机背景音乐图片的一个鼠标点击事件
+            $("#sound_image").click(function() {
+                var player = $("#bgsound")[0]; //jQuery对象要转换为JS对象
+                if (player.paused) {
+                    player.play();
+                } else {
+                    player.pause();
+                }
+            });
+
+            $(".start").click(function() {
+                animation1(); //执行上面定义好的动画函数
+                $(this).hide(); //将开始的图标隐藏掉
+            });
+
+            $(".opengift").click(function() {
+                $(".animation1").hide(); //隐藏div为animation1的标签元素
+                $(".animation2").show(); //显示div为animation2的标签元素
+
+                //执行animation2的动画(拆礼物的动画)
+                animation2();
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <!-- 设置音乐播放的audio标签 -->
+    <div id="audioContainter">
+        <audio autoplay="autoplay" loop="loop" src="sound/christmas.mp3" id="bgsound"></audio>
+    </div>
+
+    <!-- 添加控制背景音乐播放与停止的图片 -->
+    <div id="cardsound" style="position:fixed; right: 40px; top: 40px; z-index: 5000; visibility: visible;">
+        <img src="images/music_note_big.png" id="sound_image" />
+    </div>
+
+    <!-- 定义背景上的星星闪烁 -->
+    <div class="star" id="star1" style="top: 110px; left: 50%; z-index:1001;"></div>
+    <div class="star" id="star2" style="top: 160px; left: 39%; z-index:1001;"></div>
+    <div class="star" id="star3" style="top: 210px; left: 55%; z-index:1001;"></div>
+    <div class="star" id="star4" style="top: 180px; left: 43%; z-index:1001;"></div>
+    <div class="star" id="star5" style="top: 140px; left: 59%; z-index:1001;"></div>
+    <div class="star" id="star6" style="top: 210px; left: 41%; z-index:1001;"></div>
+    <div class="star" id="star7" style="top: 123px; left: 33%; z-index:1001;"></div>
+    <div class="star" id="star8" style="top: 205px; left: 38%; z-index:1001;"></div>
+    <div class="star" id="star9" style="top: 220px; left: 49%; z-index:1001;"></div>
+    <div class="star" id="star10" style="top: 230px; left: 60%; z-index:1001;"></div>
+
+    <!-- 驯鹿动效div -->
+    <div class="wrapper">
+        <div class="bg"></div>
+        <div class="animation1">
+            <div class="start"></div>
+            <!-- 驯鹿的大div -->
+            <div class="deer_group">
+                <!-- 驯鹿开场白 -->
+                <div class="pop1"></div>
+                <div class="pop2">
+                    <div class="content_border">
+                        <img src="images/desc_1.png" class="content_1">侯代全
+                    </div>
+                    <img src="images/desc_2.png" class="content_3">
+                </div>
+                <!-- 驯鹿div -->
+                <div class="deer"></div>
+                <div class="newyearcar" id="newyearcar1"></div>
+                <div class="opengift"></div>
+            </div>
+        </div>
+
+        <!-- 拆礼物动画的网页结构 -->
+        <div class="animation2">
+            <h3 class="title" id="title2"></h3>
+            <div class="flower"></div>
+            <div id="newyearcar2" class="newyearcar"></div>
+        </div>
+    </div>
+</body>
+
+</html>
